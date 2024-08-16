@@ -7,7 +7,6 @@ const hotList = ref([])
 const getHotList = async () => {
     const res = await findHotAPI()
     hotList.value = res.result
-
 }
 
 onMounted(() => getHotList())
