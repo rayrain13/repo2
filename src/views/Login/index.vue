@@ -1,5 +1,51 @@
 <script setup>
+import { ref } from 'vue';
+import { ElMessage } from 'element-plus'
+import 'element-plus/theme-chalk/el-message.css'
+import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user';
 
+const userStore = useUserStore()
+
+//表单校验
+
+const form = ref({
+  account: '',
+  password: ''
+})
+
+//规则对象
+const rules = {
+  account: [
+    { required: true, message: '用户名不能为空' }
+  ],
+  password: [
+    { required: true, message: '密码不能为空' },
+    { min: 6, max: 24, message: '密码长度要求6-14个字符' }
+  ],
+  agree: [
+    {
+      validator: (rule, val, callback) => {
+        return val ? callback() : new Error('请先同意协议')
+      }
+    }
+  ]
+}
+
+const formRef = ref(null)
+const router = useRouter()
+const doClick = () => {
+  const { account, password } = form.value
+  //调用实例方法
+  formRef.value.validate(async (valid) => {
+    if (valid) {
+      //to do login
+      await userStore.getUserInfo({ account, password })
+      ElMessage({ type: 'success', message: '登陆成功' })
+      router.replace({ path: '/' })
+    }
+  })
+}
 </script>
 
 
@@ -24,20 +70,19 @@
         </nav>
         <div class="account-box">
           <div class="form">
-            <el-form label-position="right" label-width="60px"
-              status-icon>
-              <el-form-item  label="账户">
-                <el-input/>
+            <el-form ref="formRef" :model="form" :rules="rules" label-position="right" label-width="60px" status-icon>
+              <el-form-item prop="account" label="账户">
+                <el-input v-model="form.account" />
               </el-form-item>
-              <el-form-item label="密码">
-                <el-input/>
+              <el-form-item prop="password" label="密码">
+                <el-input v-model="form.password" />
               </el-form-item>
-              <el-form-item label-width="22px">
-                <el-checkbox  size="large">
+              <el-form-item prop="agree" label-width="22px">
+                <el-checkbox v-model="form.agree" size="large">
                   我已同意隐私条款和服务条款
                 </el-checkbox>
               </el-form-item>
-              <el-button size="large" class="subBtn">点击登录</el-button>
+              <el-button size="large" class="subBtn" @click="doClick">点击登录</el-button>
             </el-form>
           </div>
         </div>
